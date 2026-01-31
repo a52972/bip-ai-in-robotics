@@ -1,0 +1,52 @@
+<launch>
+  <arg name="use_udp_ai" default="true" />
+  <arg name="use_avoid"  default="true" />
+
+  <!-- UDP bridge settings  -->
+  <arg name="udp_port" default="5005" />
+  <arg name="udp_timeout" default="0.5" />
+
+  <!-- =========================
+       Motors (JetBot base)
+       ========================= -->
+  <include file="$(find jetbot_pro)/launch/jetbot.launch" />
+
+  <!-- =========================
+       LiDAR
+       ========================= -->
+  <include file="$(find jetbot_pro)/launch/lidar.launch" />
+
+  <!-- =========================
+       CSI Camera
+       ========================= -->
+  <!--<include file="$(find jetbot_pro)/launch/csi_camera.launch" />-->
+
+  <!-- =========================
+       AI bridge (Docker -> Host ROS)
+       Publishes: /cmd_vel_ai
+       ========================= -->
+   <group if="$(arg use_udp_ai)">
+    <node pkg="jetbot_pro" type="udp_to_cmdvel_ai.py" name="udp_to_cmdvel_ai" output="screen">
+      <param name="port" value="$(arg udp_port)" />
+      <param name="timeout" value="$(arg udp_timeout)" />
+      <param name="rate" value="30.0" />
+    </node>
+  </group>
+
+  <!-- =========================
+       LiDAR obstacle avoidance
+       Publishes: /cmd_vel_avoid
+       ========================= -->
+  <group if="$(arg use_avoid)">
+    <node pkg="jetbot_pro" type="laserAvoidance_cmdvel_avoid.py" name="laserAvoidance_cmdvel_avoid" output="screen" />
+  </group>
+
+  <!-- =========================
+       Mux of AI and Avoidance
+       Output: /cmd_vel (to motors)
+       ========================= -->
+  <node pkg="jetbot_pro" type="cmd_vel_mux.py" name="cmd_vel_mux" output="screen">
+    <param name="avoid_timeout" value="0.25" />
+  </node>
+
+</launch>

@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- ========================= -->
+  <!-- Arguments -->
+  <!-- ========================= -->
+  <arg name="map_file" default="$(find jetbot_pro)/maps/project.yaml"/>
+
+  <!-- ========================= -->
+  <!-- Robot base + sensors -->
+  <!-- ========================= -->
+  <include file="$(find jetbot_pro)/launch/jetbot.launch" />
+  <include file="$(find jetbot_pro)/launch/lidar.launch" />
+  <include file="$(find jetbot_pro)/launch/csi_camera.launch" />
+
+  <!-- ========================= -->
+  <!-- Map server -->
+  <!-- ========================= -->
+  <node
+    name="map_server"
+    pkg="map_server"
+    type="map_server"
+    args="$(arg map_file)"
+    output="screen" />
+
+  <!-- ========================= -->
+  <!-- Localization (AMCL) -->
+  <!-- ========================= -->
+  <include file="$(find jetbot_pro)/launch/amcl.launch" />
+
+  <!-- ========================= -->
+  <!-- Navigation (move_base) -->
+  <!-- ========================= -->
+  <include file="$(find jetbot_pro)/launch/move_base.launch"/>
+
+  <!-- ========================= -->
+  <!-- Voice navigation node -->
+  <!-- ========================= -->
+  <node
+    pkg="jetbot_pro"
+    type="voice_nav.py"
+    name="voice_commander"
+    output="screen" />
+
+</launch>
